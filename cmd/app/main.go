@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/fromsi/game_2d/internal"
+	"github.com/fromsi/game_2d/internal/interfaces/ebitengin"
 	"log"
 )
 
 func main() {
-	app := internal.Application{
+	app := ebitengin.Application{
 		Title:  "Game",
 		Width:  500,
 		Height: 800,
