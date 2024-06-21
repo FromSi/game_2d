@@ -10,22 +10,22 @@ import (
 )
 
 const (
-	DefaultSize  = 20
-	DefaultColor = 0xffff
+	DefaultSize  float64 = 20
+	DefaultColor uint16  = 0xffff
 )
 
 var (
-	textFaceSource *text.GoTextFaceSource
+	fontTiny5RegularFaceSource *text.GoTextFaceSource
 )
 
 func init() {
-	newGoTextFaceSource, err := text.NewGoTextFaceSource(bytes.NewReader(font.Tiny5Regular_ttf))
+	newFontTiny5RegularFaceSource, err := text.NewGoTextFaceSource(bytes.NewReader(font.Tiny5Regular_ttf))
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	textFaceSource = newGoTextFaceSource
+	fontTiny5RegularFaceSource = newFontTiny5RegularFaceSource
 }
 
 type TextComponent struct {
@@ -36,7 +36,7 @@ type TextComponent struct {
 	Color          color.Color
 }
 
-func (component *TextComponent) FillByDefault() {
+func (component *TextComponent) fillByDefault() {
 	if component.Size == 0 {
 		component.Size = DefaultSize
 	}
@@ -47,7 +47,7 @@ func (component *TextComponent) FillByDefault() {
 }
 
 func (component *TextComponent) Draw(Screen *ebiten.Image) {
-	component.FillByDefault()
+	component.fillByDefault()
 
 	drawOptions := &text.DrawOptions{}
 
@@ -55,7 +55,7 @@ func (component *TextComponent) Draw(Screen *ebiten.Image) {
 	drawOptions.ColorScale.ScaleWithColor(component.Color)
 
 	textFace := &text.GoTextFace{
-		Source: textFaceSource,
+		Source: fontTiny5RegularFaceSource,
 		Size:   component.Size,
 	}
 
