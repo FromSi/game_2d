@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"github.com/fromsi/game_2d/internal/interface/ebitengin/ui"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type DrawController struct {
+	Page ui.Component
 }
 
 type DrawRequest struct {
@@ -16,5 +18,7 @@ type DrawResponse struct {
 }
 
 func (controller *DrawController) Handle(request *DrawRequest) *DrawResponse {
+	controller.Page.OnDraw(request.Screen)
+
 	return &DrawResponse{Err: nil}
 }
