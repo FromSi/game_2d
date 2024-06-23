@@ -6,7 +6,7 @@ import (
 )
 
 type DrawController struct {
-	Page ui.Component
+	Page ui.Page
 }
 
 type DrawRequest struct {

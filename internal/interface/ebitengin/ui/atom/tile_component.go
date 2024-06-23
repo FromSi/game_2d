@@ -40,63 +40,45 @@ func init() {
 type TileComponent struct {
 	Id             int
 	Type           TileType
-	StartGeometryX float64
-	StartGeometryY float64
 	Scale          float64
 	OnClick        func()
+	startGeometryX float64
+	startGeometryY float64
 }
 
-func (component *TileComponent) getStartGeometryTile() (int, int) {
-	tileWidth := component.getEbitenImage().Bounds().Dx()
-	tileSize := component.getTileSize()
-	tileXCount := tileWidth / tileSize
-
-	x := (component.Id % tileXCount) * tileSize
-	y := (component.Id / tileXCount) * tileSize
-
-	return x, y
+func (component *TileComponent) GetStartGeometryX() float64 {
+	return component.startGeometryX
 }
 
-func (component *TileComponent) GetEndGeometries() (float64, float64) {
+func (component *TileComponent) GetStartGeometryY() float64 {
+	return component.startGeometryY
+}
+
+func (component *TileComponent) SetStartGeometryX(startGeometryX float64) {
+	component.startGeometryX = startGeometryX
+}
+
+func (component *TileComponent) SetStartGeometryY(startGeometryY float64) {
+	component.startGeometryY = startGeometryY
+}
+
+func (component *TileComponent) GetEndGeometryX() float64 {
 	result := float64(component.getTileSize()) * component.Scale
 
-	endGeometryX := result + component.StartGeometryX
-	endGeometryY := result + component.StartGeometryY
-
-	return endGeometryX, endGeometryY
+	return result + component.startGeometryX
 }
 
-func (component *TileComponent) getTileSize() int {
-	switch component.Type {
-	case ToolTileType:
-		return assetimage.ToolTileSize
-	default:
-		return assetimage.ResourceTileSize
-	}
-}
+func (component *TileComponent) GetEndGeometryY() float64 {
+	result := float64(component.getTileSize()) * component.Scale
 
-func (component *TileComponent) getEbitenImage() *ebiten.Image {
-	switch component.Type {
-	case ToolTileType:
-		return toolTileImage
-	default:
-		return resourceTileImage
-	}
-}
-
-func (component *TileComponent) fillByDefault() {
-	if component.Scale == 0 {
-		component.Scale = 5
-	}
+	return result + component.startGeometryY
 }
 
 func (component *TileComponent) OnDraw(Screen *ebiten.Image) {
-	component.fillByDefault()
-
 	drawOptions := &ebiten.DrawImageOptions{}
 
 	drawOptions.GeoM.Scale(component.Scale, component.Scale)
-	drawOptions.GeoM.Translate(component.StartGeometryX, component.StartGeometryY)
+	drawOptions.GeoM.Translate(component.startGeometryX, component.startGeometryY)
 
 	startGeometryTileX, startGeometryTileY := component.getStartGeometryTile()
 
@@ -127,12 +109,39 @@ func (component *TileComponent) HandleClick(geometryX, geometryY float64) bool {
 }
 
 func (component *TileComponent) IsWithin(geometryX, geometryY float64) bool {
-	endGeometryX, endGeometryY := component.GetEndGeometries()
-
-	isWithinX := (component.StartGeometryX <= geometryX) && (endGeometryX >= geometryX)
-	isWithinY := (component.StartGeometryY <= geometryY) && (endGeometryY >= geometryY)
+	isWithinX := (component.startGeometryX <= geometryX) && (component.GetEndGeometryX() >= geometryX)
+	isWithinY := (component.startGeometryY <= geometryY) && (component.GetEndGeometryY() >= geometryY)
 
 	return isWithinX && isWithinY
+}
+
+func (component *TileComponent) getStartGeometryTile() (int, int) {
+	tileWidth := component.getEbitenImage().Bounds().Dx()
+	tileSize := component.getTileSize()
+	tileXCount := tileWidth / tileSize
+
+	x := (component.Id % tileXCount) * tileSize
+	y := (component.Id / tileXCount) * tileSize
+
+	return x, y
+}
+
+func (component *TileComponent) getTileSize() int {
+	switch component.Type {
+	case ToolTileType:
+		return assetimage.ToolTileSize
+	default:
+		return assetimage.ResourceTileSize
+	}
+}
+
+func (component *TileComponent) getEbitenImage() *ebiten.Image {
+	switch component.Type {
+	case ToolTileType:
+		return toolTileImage
+	default:
+		return resourceTileImage
+	}
 }
 
 type BuilderTileComponent struct {
@@ -144,8 +153,8 @@ func NewBuilderTileComponent() *BuilderTileComponent {
 		component: &TileComponent{
 			Id:             0,
 			Type:           ResourceTileType,
-			StartGeometryX: 0,
-			StartGeometryY: 0,
+			startGeometryX: 0,
+			startGeometryY: 0,
 			Scale:          1,
 		},
 	}
@@ -168,13 +177,13 @@ func (builder *BuilderTileComponent) SetType(_type TileType) *BuilderTileCompone
 }
 
 func (builder *BuilderTileComponent) SetStartGeometryX(startGeometryX float64) *BuilderTileComponent {
-	builder.component.StartGeometryX = startGeometryX
+	builder.component.startGeometryX = startGeometryX
 
 	return builder
 }
 
 func (builder *BuilderTileComponent) SetStartGeometryY(startGeometryY float64) *BuilderTileComponent {
-	builder.component.StartGeometryY = startGeometryY
+	builder.component.startGeometryY = startGeometryY
 
 	return builder
 }

@@ -7,7 +7,7 @@ import (
 )
 
 type UpdateController struct {
-	Page ui.Component
+	Page ui.Page
 }
 
 type UpdateRequest struct {

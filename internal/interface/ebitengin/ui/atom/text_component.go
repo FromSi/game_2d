@@ -32,38 +32,55 @@ func init() {
 type TextComponent struct {
 	Text           string
 	Type           FontType
-	StartGeometryX float64
-	StartGeometryY float64
 	Size           float64
 	Color          color.Color
 	OnClick        func()
+	startGeometryX float64
+	startGeometryY float64
 }
 
-func (component *TextComponent) getFontFaceSource() *text.GoTextFaceSource {
-	switch component.Type {
-	default:
-		return tiny5RegularFontFaceSource
-	}
+func (component *TextComponent) GetStartGeometryX() float64 {
+	return component.startGeometryX
 }
 
-func (component *TextComponent) GetEndGeometries() (float64, float64) {
+func (component *TextComponent) GetStartGeometryY() float64 {
+	return component.startGeometryY
+}
+
+func (component *TextComponent) SetStartGeometryX(startGeometryX float64) {
+	component.startGeometryX = startGeometryX
+}
+
+func (component *TextComponent) SetStartGeometryY(startGeometryY float64) {
+	component.startGeometryY = startGeometryY
+}
+
+func (component *TextComponent) GetEndGeometryX() float64 {
 	textFace := &text.GoTextFace{
 		Source: component.getFontFaceSource(),
 		Size:   component.Size,
 	}
 
-	endGeometryX, endGeometryY := text.Measure(component.Text, textFace, 0)
+	endGeometryX, _ := text.Measure(component.Text, textFace, 0)
 
-	endGeometryX += component.StartGeometryX
-	endGeometryY += component.StartGeometryY
+	return endGeometryX + component.startGeometryX
+}
 
-	return endGeometryX, endGeometryY
+func (component *TextComponent) GetEndGeometryY() float64 {
+	textFace := &text.GoTextFace{
+		Source: component.getFontFaceSource(),
+		Size:   component.Size,
+	}
+
+	_, endGeometryY := text.Measure(component.Text, textFace, 0)
+
+	return endGeometryY + component.startGeometryY
 }
 
 func (component *TextComponent) OnDraw(Screen *ebiten.Image) {
 	drawOptions := &text.DrawOptions{}
 
-	drawOptions.GeoM.Translate(component.StartGeometryX, component.StartGeometryY)
+	drawOptions.GeoM.Translate(component.startGeometryX, component.startGeometryY)
 	drawOptions.ColorScale.ScaleWithColor(component.Color)
 
 	textFace := &text.GoTextFace{
@@ -89,12 +106,17 @@ func (component *TextComponent) HandleClick(geometryX, geometryY float64) bool {
 }
 
 func (component *TextComponent) IsWithin(geometryX, geometryY float64) bool {
-	endGeometryX, endGeometryY := component.GetEndGeometries()
-
-	isWithinX := (component.StartGeometryX <= geometryX) && (endGeometryX >= geometryX)
-	isWithinY := (component.StartGeometryY <= geometryY) && (endGeometryY >= geometryY)
+	isWithinX := (component.startGeometryX <= geometryX) && (component.GetEndGeometryX() >= geometryX)
+	isWithinY := (component.startGeometryY <= geometryY) && (component.GetEndGeometryY() >= geometryY)
 
 	return isWithinX && isWithinY
+}
+
+func (component *TextComponent) getFontFaceSource() *text.GoTextFaceSource {
+	switch component.Type {
+	default:
+		return tiny5RegularFontFaceSource
+	}
 }
 
 type BuilderTextComponent struct {
@@ -106,8 +128,8 @@ func NewBuilderTextComponent() *BuilderTextComponent {
 		component: &TextComponent{
 			Text:           "",
 			Type:           Tiny5RegularFontType,
-			StartGeometryX: 0,
-			StartGeometryY: 0,
+			startGeometryX: 0,
+			startGeometryY: 0,
 			Size:           20,
 			Color:          color.White,
 		},
@@ -131,13 +153,13 @@ func (builder *BuilderTextComponent) SetType(_type FontType) *BuilderTextCompone
 }
 
 func (builder *BuilderTextComponent) SetStartGeometryX(startGeometryX float64) *BuilderTextComponent {
-	builder.component.StartGeometryX = startGeometryX
+	builder.component.startGeometryX = startGeometryX
 
 	return builder
 }
 
 func (builder *BuilderTextComponent) SetStartGeometryY(startGeometryY float64) *BuilderTextComponent {
-	builder.component.StartGeometryY = startGeometryY
+	builder.component.startGeometryY = startGeometryY
 
 	return builder
 }

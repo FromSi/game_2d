@@ -1,40 +1,35 @@
 package page
 
 import (
+	"fmt"
 	"github.com/fromsi/game_2d/internal/interface/ebitengin/ui"
+	"github.com/fromsi/game_2d/internal/interface/ebitengin/ui/atom"
+	"github.com/fromsi/game_2d/internal/interface/ebitengin/ui/template"
 	"github.com/hajimehoshi/ebiten/v2"
-	"math"
 )
 
 type MainPage struct {
-	Component      ui.Component
-	StartGeometryX float64
-	StartGeometryY float64
-}
-
-func (page *MainPage) GetEndGeometries() (float64, float64) {
-	return math.MaxFloat64, math.MaxFloat64
+	components []ui.Component
 }
 
 func (page *MainPage) OnDraw(Screen *ebiten.Image) {
-	page.Component.OnDraw(Screen)
+	for i := len(page.components) - 1; i >= 0; i-- {
+		component := page.components[i]
+
+		component.OnDraw(Screen)
+	}
 }
 
 func (page *MainPage) HandleClick(geometryX, geometryY float64) bool {
-	if !page.IsWithin(geometryX, geometryY) {
-		return false
+	for i := len(page.components) - 1; i >= 0; i-- {
+		component := page.components[i]
+
+		if component.HandleClick(geometryX, geometryY) {
+			return true
+		}
 	}
 
-	return page.Component.HandleClick(geometryX, geometryY)
-}
-
-func (page *MainPage) IsWithin(geometryX, geometryY float64) bool {
-	endGeometryX, endGeometryY := page.GetEndGeometries()
-
-	isWithinX := (page.StartGeometryX <= geometryX) && (endGeometryX >= geometryX)
-	isWithinY := (page.StartGeometryY <= geometryY) && (endGeometryY >= geometryY)
-
-	return isWithinX && isWithinY
+	return false
 }
 
 type BuilderMainPage struct {
@@ -42,32 +37,26 @@ type BuilderMainPage struct {
 }
 
 func NewBuilderMainPage() *BuilderMainPage {
+	components := []ui.Component{
+		template.
+			NewBuilderMainTemplate().
+			SetStartGeometryX(50).
+			SetComponents([]ui.Component{
+				atom.
+					NewBuilderTextComponent().
+					SetText("Hello World!").
+					SetSize(30).
+					SetOnClick(func() {
+						fmt.Println("Hey")
+					}).GetComponent(),
+			}).GetComponent(),
+	}
+
 	return &BuilderMainPage{
-		component: &MainPage{
-			StartGeometryX: 0,
-			StartGeometryY: 0,
-		},
+		component: &MainPage{components: components},
 	}
 }
 
 func (builder *BuilderMainPage) GetComponent() *MainPage {
 	return builder.component
-}
-
-func (builder *BuilderMainPage) SetComponent(component ui.Component) *BuilderMainPage {
-	builder.component.Component = component
-
-	return builder
-}
-
-func (builder *BuilderMainPage) SetStartGeometryX(startGeometryX float64) *BuilderMainPage {
-	builder.component.StartGeometryX = startGeometryX
-
-	return builder
-}
-
-func (builder *BuilderMainPage) SetStartGeometryY(startGeometryY float64) *BuilderMainPage {
-	builder.component.StartGeometryY = startGeometryY
-
-	return builder
 }
