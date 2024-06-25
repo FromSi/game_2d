@@ -7,7 +7,7 @@ import (
 )
 
 type MainTemplate struct {
-	components     []ui.Component
+	componentData  *ui.ComponentData
 	startGeometryX float64
 	startGeometryY float64
 }
@@ -20,26 +20,35 @@ func (template *MainTemplate) GetStartGeometryY() float64 {
 	return template.startGeometryY
 }
 
-func (template *MainTemplate) AddComponent(component ui.Component) {
-	component.SetStartGeometryX(template.startGeometryX + component.GetStartGeometryX())
-	component.SetStartGeometryY(template.startGeometryY + component.GetStartGeometryY())
+func (template *MainTemplate) GetComponentData() *ui.ComponentData {
+	return template.componentData
+}
 
-	template.components = append(template.components, component)
+func (template *MainTemplate) SetComponentData(componentData *ui.ComponentData) {
+	template.componentData = componentData
 }
 
 func (template *MainTemplate) SetStartGeometryX(startGeometryX float64) {
 	template.startGeometryX = startGeometryX
+	componentDataIterator := template.componentData.GetNormalComponentDataIterator()
 
-	for index, component := range template.components {
-		template.components[index].SetStartGeometryX(startGeometryX + component.GetStartGeometryX())
+	for componentDataIterator.HasNext() {
+		component := *componentDataIterator.GetNext()
+
+		component.SetStartGeometryX(startGeometryX + component.GetStartGeometryX())
+		template.componentData.UpdateById(component, componentDataIterator.GetId())
 	}
 }
 
 func (template *MainTemplate) SetStartGeometryY(startGeometryY float64) {
 	template.startGeometryY = startGeometryY
+	componentDataIterator := template.componentData.GetNormalComponentDataIterator()
 
-	for index, component := range template.components {
-		template.components[index].SetStartGeometryY(startGeometryY + component.GetStartGeometryY())
+	for componentDataIterator.HasNext() {
+		component := *componentDataIterator.GetNext()
+
+		component.SetStartGeometryY(startGeometryY + component.GetStartGeometryY())
+		template.componentData.UpdateById(component, componentDataIterator.GetId())
 	}
 }
 
@@ -52,10 +61,12 @@ func (template *MainTemplate) GetEndGeometryY() float64 {
 }
 
 func (template *MainTemplate) OnDraw(Screen *ebiten.Image) {
-	for i := len(template.components) - 1; i >= 0; i-- {
-		component := template.components[i]
+	componentDataIterator := template.componentData.GetReverseComponentDataIterator()
 
-		component.OnDraw(Screen)
+	for componentDataIterator.HasNext() {
+		component := componentDataIterator.GetNext()
+
+		(*component).OnDraw(Screen)
 	}
 }
 
@@ -64,10 +75,12 @@ func (template *MainTemplate) HandleClick(geometryX, geometryY float64) bool {
 		return false
 	}
 
-	for i := len(template.components) - 1; i >= 0; i-- {
-		component := template.components[i]
+	componentDataIterator := template.componentData.GetNormalComponentDataIterator()
 
-		if component.HandleClick(geometryX, geometryY) {
+	for componentDataIterator.HasNext() {
+		component := componentDataIterator.GetNext()
+
+		if (*component).HandleClick(geometryX, geometryY) {
 			return true
 		}
 	}
@@ -89,6 +102,7 @@ type BuilderMainTemplate struct {
 func NewBuilderMainTemplate() *BuilderMainTemplate {
 	return &BuilderMainTemplate{
 		component: &MainTemplate{
+			componentData:  ui.NewBuilderComponentData().GetComponentData(),
 			startGeometryX: 0,
 			startGeometryY: 0,
 		},
@@ -102,8 +116,8 @@ func (builder *BuilderMainTemplate) GetComponent() *MainTemplate {
 	return builder.component
 }
 
-func (builder *BuilderMainTemplate) SetComponents(components []ui.Component) *BuilderMainTemplate {
-	builder.component.components = components
+func (builder *BuilderMainTemplate) SetComponentData(componentData *ui.ComponentData) *BuilderMainTemplate {
+	builder.component.componentData = componentData
 
 	return builder
 }

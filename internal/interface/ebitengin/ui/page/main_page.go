@@ -9,22 +9,26 @@ import (
 )
 
 type MainPage struct {
-	components []ui.Component
+	componentData *ui.ComponentData
 }
 
 func (page *MainPage) OnDraw(Screen *ebiten.Image) {
-	for i := len(page.components) - 1; i >= 0; i-- {
-		component := page.components[i]
+	componentDataIterator := page.componentData.GetNormalComponentDataIterator()
 
-		component.OnDraw(Screen)
+	for componentDataIterator.HasNext() {
+		component := componentDataIterator.GetNext()
+
+		(*component).OnDraw(Screen)
 	}
 }
 
 func (page *MainPage) HandleClick(geometryX, geometryY float64) bool {
-	for i := len(page.components) - 1; i >= 0; i-- {
-		component := page.components[i]
+	componentDataIterator := page.componentData.GetNormalComponentDataIterator()
 
-		if component.HandleClick(geometryX, geometryY) {
+	for componentDataIterator.HasNext() {
+		component := componentDataIterator.GetNext()
+
+		if (*component).HandleClick(geometryX, geometryY) {
 			return true
 		}
 	}
@@ -37,23 +41,31 @@ type BuilderMainPage struct {
 }
 
 func NewBuilderMainPage() *BuilderMainPage {
-	components := []ui.Component{
-		template.
-			NewBuilderMainTemplate().
-			SetStartGeometryX(50).
-			SetComponents([]ui.Component{
-				atom.
-					NewBuilderTextComponent().
-					SetText("Hello World!").
-					SetSize(30).
-					SetOnClick(func() {
-						fmt.Println("Hey")
-					}).GetComponent(),
-			}).GetComponent(),
-	}
+	textHelloWorld := atom.
+		NewBuilderTextComponent().
+		SetText("Hello World!").
+		SetSize(30).
+		SetOnClick(func() { fmt.Println("Hey") }).
+		GetComponent()
+
+	componentDataForData := ui.
+		NewBuilderComponentData().
+		AddComponent(textHelloWorld).
+		GetComponentData()
+
+	templateMain := template.
+		NewBuilderMainTemplate().
+		SetStartGeometryX(30).
+		SetComponentData(componentDataForData).
+		GetComponent()
+
+	componentDataForMainPage := ui.
+		NewBuilderComponentData().
+		AddComponent(templateMain).
+		GetComponentData()
 
 	return &BuilderMainPage{
-		component: &MainPage{components: components},
+		component: &MainPage{componentData: componentDataForMainPage},
 	}
 }
 
