@@ -5,11 +5,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type DrawController struct {
-	Page ui.Page
-}
+type DrawController struct{}
 
 type DrawRequest struct {
+	Page   ui.Page
 	Screen *ebiten.Image
 }
 
@@ -18,7 +17,7 @@ type DrawResponse struct {
 }
 
 func (controller *DrawController) Handle(request *DrawRequest) *DrawResponse {
-	controller.Page.OnDraw(request.Screen)
+	request.Page.OnDraw(request.Screen)
 
 	return &DrawResponse{Err: nil}
 }

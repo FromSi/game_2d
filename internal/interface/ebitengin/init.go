@@ -2,11 +2,13 @@ package ebitengin
 
 import (
 	"github.com/fromsi/game_2d/internal/interface/ebitengin/controller"
+	"github.com/fromsi/game_2d/internal/interface/ebitengin/ui"
 	uipage "github.com/fromsi/game_2d/internal/interface/ebitengin/ui/page"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Application struct {
+	Page             ui.Page
 	Title            string
 	Width            int
 	Height           int
@@ -16,6 +18,7 @@ type Application struct {
 
 func (application *Application) Draw(screen *ebiten.Image) {
 	drawRequest := controller.DrawRequest{
+		Page:   application.Page,
 		Screen: screen,
 	}
 
@@ -23,9 +26,15 @@ func (application *Application) Draw(screen *ebiten.Image) {
 }
 
 func (application *Application) Update() error {
-	updateRequest := controller.UpdateRequest{}
+	updateRequest := controller.UpdateRequest{
+		Page: application.Page,
+	}
 
-	return application.updateController.Handle(&updateRequest).Err
+	updateResponse := application.updateController.Handle(&updateRequest)
+
+	application.Page = updateResponse.Page
+
+	return updateResponse.Err
 }
 
 func (application *Application) Layout(_ int, _ int) (int, int) {
@@ -37,10 +46,10 @@ func (application *Application) Run() error {
 
 	ebiten.SetWindowTitle(application.Title)
 
-	mainPage := uipage.NewBuilderMainPage().GetComponent()
+	application.Page = uipage.NewBuilderMainPage().GetComponent()
 
-	application.drawController = controller.DrawController{Page: mainPage}
-	application.updateController = controller.UpdateController{Page: mainPage}
+	application.drawController = controller.DrawController{}
+	application.updateController = controller.UpdateController{}
 
 	return ebiten.RunGame(application)
 }

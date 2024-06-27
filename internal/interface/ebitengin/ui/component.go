@@ -31,6 +31,11 @@ type Component interface {
 	SetStartGeometryY(float64)
 }
 
+type ComponentWithData interface {
+	GetComponentData() *ComponentData
+	SetComponentData(*ComponentData)
+}
+
 type ComponentData struct {
 	data  map[string]Component
 	order []string
@@ -71,9 +76,23 @@ func (componentData *ComponentData) AddToBeginById(component Component, newID st
 }
 
 func (componentData *ComponentData) GetById(id string) (*Component, bool) {
-	value, exists := componentData.data[id]
+	if componentData.HasById(id) {
+		value, exists := componentData.data[id]
 
-	return &value, exists
+		return &value, exists
+	}
+
+	for _, component := range componentData.data {
+		if compWithData, ok := component.(ComponentWithData); ok {
+			value, exists := compWithData.GetComponentData().GetById(id)
+
+			if exists {
+				return value, exists
+			}
+		}
+	}
+
+	return nil, false
 }
 
 func (componentData *ComponentData) GetByIndex(index int) (*Component, bool) {

@@ -1,7 +1,6 @@
 package page
 
 import (
-	"fmt"
 	"github.com/fromsi/game_2d/internal/interface/ebitengin/ui"
 	"github.com/fromsi/game_2d/internal/interface/ebitengin/ui/atom"
 	"github.com/fromsi/game_2d/internal/interface/ebitengin/ui/template"
@@ -41,16 +40,25 @@ type BuilderMainPage struct {
 }
 
 func NewBuilderMainPage() *BuilderMainPage {
+	mainPage := &MainPage{}
+
 	textHelloWorld := atom.
 		NewBuilderTextComponent().
 		SetText("Hello World!").
 		SetSize(30).
-		SetOnClick(func() { fmt.Println("Hey") }).
+		GetComponent()
+
+	tileComponent := atom.
+		NewBuilderTileComponent().
+		SetStartGeometryY(50).
+		SetOnClick(func() { textHelloWorld.Text = "Clicked" }).
+		SetScale(5).
 		GetComponent()
 
 	componentDataForData := ui.
 		NewBuilderComponentData().
 		AddComponent(textHelloWorld).
+		AddComponent(tileComponent).
 		GetComponentData()
 
 	templateMain := template.
@@ -64,8 +72,10 @@ func NewBuilderMainPage() *BuilderMainPage {
 		AddComponent(templateMain).
 		GetComponentData()
 
+	mainPage.componentData = componentDataForMainPage
+
 	return &BuilderMainPage{
-		component: &MainPage{componentData: componentDataForMainPage},
+		component: mainPage,
 	}
 }
 
